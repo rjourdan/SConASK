@@ -1,0 +1,40 @@
+{
+  "intents": [
+    {
+      "intent": "CreateSiteIntent",
+      "slots": [
+        {
+          "name": "City",
+          "type": "AMAZON.US_CITY"
+        },
+        {
+          "name": "State",
+          "type": "LIST_OF_STATES"
+        },
+        {
+          "name": "Country",
+          "type": "LIST_OF_COUNTRIES"
+        },
+        {
+          "name": "Type",
+          "type": "LIST_OF_SITE_TYPES"
+        }
+      ]
+    },
+    {
+      "intent": "ListSitesIntent"
+    },
+    {
+      "intent": "CleanOrgIntent"
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    }
+  ]
+}
