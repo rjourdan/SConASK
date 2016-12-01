@@ -1,0 +1,19 @@
+CreateSiteIntent create a site in {City} {Country}
+CreateSiteIntent create a site in {City} {State}
+CreateSiteIntent create a {Type}
+CreateSiteIntent create a site of type {Type} in {City} {Country}
+CreateSiteIntent create a site of type {Type} in {City} {State}
+CreateSiteIntent I want a {Type} in {City} {Country}
+CreateSiteIntent I want a {Type} in {City} {State}
+CreateSiteIntent I want a {Type}
+CreateSiteIntent {Type}
+CreateSiteIntent {City}
+CreateSiteIntent {City} {Country}
+CreateSiteIntent {State}
+CreateSiteIntent {Country}
+CreateSiteIntent {City} {State}
+
+ListSitesIntent list the sites
+ListSitesIntent what are the sites in my org
+
+CleanOrgIntent clean my org
