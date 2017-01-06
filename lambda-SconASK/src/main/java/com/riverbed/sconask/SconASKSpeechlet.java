@@ -23,6 +23,7 @@ import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SsmlOutputSpeech;
 import com.riverbed.sconask.beans.SconSite;
 import com.riverbed.sconask.rest.SconObjectCallApi;
+import com.riverbed.sconask.util.StringModifier;
 
 public class SconASKSpeechlet implements Speechlet {
 	
@@ -33,7 +34,7 @@ public class SconASKSpeechlet implements Speechlet {
 	 private static final String SLOT_STATE = "State";
 	 private static final String SLOT_TYPE = "Type";
 	 private static final String SLOT_COUNTRY = "Country";
-	 
+	 private static final String SLOT_STREET = "Street";
 	
 	public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException {
 		log.debug("on Intent requestId={"+request.getRequestId()+"}, sessionId={}");
@@ -112,9 +113,24 @@ public class SconASKSpeechlet implements Speechlet {
         Slot countrySlot = intent.getSlot(SLOT_COUNTRY);
         Slot stateSlot = intent.getSlot(SLOT_STATE);
         Slot typeSlot = intent.getSlot(SLOT_TYPE);
+        Slot streetSlot = intent.getSlot(SLOT_STREET);
+        
         boolean testCity = false;
         boolean testCountry = false;
         boolean testType = false;
+        boolean testStreet = false;
+        
+        
+        if (streetSlot != null && streetSlot.getValue() != null) {
+        	session.setAttribute(SLOT_STREET, streetSlot.getValue());
+        	testStreet = true;
+        	testType = true;
+        }
+      //if reprompted and street already in session testStreet is true
+        if(session.getAttribute(SLOT_STREET) != null) {
+        	testStreet=true;
+        	testType = true;
+        }
         
         if (citySlot != null && citySlot.getValue() != null) {
         	session.setAttribute(SLOT_CITY, citySlot.getValue());
@@ -152,6 +168,9 @@ public class SconASKSpeechlet implements Speechlet {
         
       //if name was not indicated then it must be reprompted
         if(!testType) return handleTypeDialogRequest(intent, session);
+        
+        //if street was not indicated, add "" in session
+        if(!testStreet) session.setAttribute(SLOT_STREET, "");
         
         return createSite(session);		
 	}
@@ -302,25 +321,42 @@ public class SconASKSpeechlet implements Speechlet {
 		
     	String stringOutput = "";
     	String repromptText = "";
-		String address = "";
+		String address = (String)session.getAttribute(SLOT_STREET);
 		String type =  (String)session.getAttribute(SLOT_TYPE);
 		String url = (String)session.getAttribute("URL");
 		String orgID = (String) session.getAttribute("ORGID");
 		String city = (String)session.getAttribute(SLOT_CITY);
-		String name = type+"_"+city;
+		String name = "";
+		String longname ="";
 		String country = (String) session.getAttribute(SLOT_COUNTRY);
-		SconSite site = new SconSite(name, name, address, city, country);
+		SconSite site = null; 
+		boolean testAddress = false;
 		
+		//if there is a street, site name = street address
+		if(!address.isEmpty()) {
+			longname = address;
+			name = StringModifier.replaceSpaceByUnderscore(address);
+			testAddress = true;
+		}
+		else{
+			name = type+"_"+city;
+			longname = type+" "+city;
+		}
+		site = new SconSite(name, longname, address, city, country);
 		try {
 			site = (SconSite) SconObjectCallApi.createSconObject(url,orgID, site);
-			SconObjectCallApi.applySiteTemplate(url,orgID,site,type);
+			if(!testAddress) SconObjectCallApi.applySiteTemplate(url,orgID,site,type);	
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			site = null;
 			e.printStackTrace();
 		}
 		
 		if(site!=null){
-			stringOutput = "The site named "+name+" has been successfuly created in "+city;
+			stringOutput = "The site named "+StringModifier.replaceUnderscoreBySpace(name)+" has been successfuly created in "+city;
+			session.setAttribute("site_name", name);
+			session.setAttribute("site_id", site.getId());
 		} else{
 			stringOutput = "The system faced a problem, please try again later on";
 		}

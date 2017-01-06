@@ -14,6 +14,7 @@ import com.riverbed.sconask.beans.SconBroadcast;
 import com.riverbed.sconask.beans.SconNetwork;
 import com.riverbed.sconask.beans.SconNode;
 import com.riverbed.sconask.beans.SconObject;
+import com.riverbed.sconask.beans.SconPathRules;
 import com.riverbed.sconask.beans.SconPort;
 import com.riverbed.sconask.beans.SconSite;
 import com.riverbed.sconask.beans.SconSsid;
@@ -36,9 +37,10 @@ public class SconObjectCallApi {
 	public static final String ZONE = "zone";
 	public static final String SWITCH = "switch";
 	public static final String ACCESSPOINT = "ap";
+	public static final String PATHRULE = "path_rule";
 	
 	//it is used to build the URL and concatenated with baseUrl. To be modified when new API are released. 
-	private static final String API_PREFIX = "/api/scm.config/1.0/org/";
+	private static final String API_PREFIX = "/api/scm.config/1.0/";
 	
 	public static String[] jsonArrayToStringArray(JsonArray array){
 		String[] returnArray = new String[array.size()];
@@ -233,7 +235,31 @@ public class SconObjectCallApi {
 					sconObj = new SconSwitch (id, uplinks, localAs, model, radios, simulated, routerId, disableStp, location, serial, license, inventoryVersionCC, ports, site, sitelink);
 				}
 			if(type.equals(PORT)){
+				String portId = "";
+				tempValue = jsonObj.get("port_id");
+				if(!jsonObj.isNull("port_id")) portId = jsonObj.getString("port_id");
 				
+				String node = "";
+				tempValue = jsonObj.get("node");
+				if(!jsonObj.isNull("node")) node = jsonObj.getString("node");
+
+				String typePort = "";
+				tempValue = jsonObj.get("type");
+				if(!jsonObj.isNull("type")) typePort = jsonObj.getString("type");
+				
+				String zone = "";
+				tempValue = jsonObj.get("zone");
+				if(!jsonObj.isNull("zone")) zone = jsonObj.getString("zone");
+				
+				String mac = "";
+				tempValue = jsonObj.get("mac");
+				if(!jsonObj.isNull("mac")) mac = jsonObj.getString("mac");
+				
+				String switchId = "";
+				tempValue = jsonObj.get("switch_id");
+				if(!jsonObj.isNull("switch_id")) switchId = jsonObj.getString("switch_id");
+				
+				sconObj = new SconPort(id,portId, node, typePort, zone, mac, switchId);
 			}
 			
 			if(type.equals(SITE)){
@@ -443,6 +469,59 @@ public class SconObjectCallApi {
 	 * @param objID
 	 * @return
 	 */
+	public static SconObject findSconObject(String baseUrl,String type,String objID){
+		SconObject result = null;
+		
+		if(type.equals(PATHRULE)){
+			SconPathRulesAPI api = new SconPathRulesAPI();
+			result = api.get(baseUrl, objID);
+			return result;
+		}
+		
+		
+		String url = baseUrl + API_PREFIX;
+		
+		if(type.equals(NODE)){
+			url = url.concat("node/"+objID);
+			
+			JsonObject jsonObj = null;
+		try {
+			jsonObj = SconJsonOperations.GetData(url);
+			if(jsonObj!=null){
+				result = convertFromJson(jsonObj,NODE);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		}
+		
+		if(type.equals(PORT)){
+			url = url.concat("port/"+objID);
+			
+			JsonObject jsonObj = null;
+		try {
+			jsonObj = SconJsonOperations.GetData(url);
+			if(jsonObj!=null){
+				result = convertFromJson(jsonObj,PORT);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Find a SteelConnect object based on its type and ID
+	 * @param baseUrl
+	 * @param orgID
+	 * @param type
+	 * @param objID
+	 * @return
+	 */
 	public static SconObject findObject(String baseUrl,String orgID,String type,String objID){
 		SconObject result = null;
 		
@@ -512,7 +591,7 @@ public class SconObjectCallApi {
 		if(type==SconObjectCallApi.SWITCH) types="/"+type+"es";
 		else if(type==SconObjectCallApi.ACCESSPOINT) types="/"+type;
 		else types = "/"+type+"s";
-		String url = baseUrl + API_PREFIX +orgID+types;
+		String url = baseUrl + API_PREFIX +"org/"+orgID+types;
 		JsonObject jsonObj = null;
 		try {
 			jsonObj = SconJsonOperations.GetData(url);
@@ -541,7 +620,14 @@ public class SconObjectCallApi {
 	public static SconObject createSconObject (String baseUrl,String orgID,SconObject obj) throws IOException{
 		if(obj==null) return null;
 		JsonObject jsonObj = null;
-		String link = baseUrl+API_PREFIX+orgID;
+		
+		if(obj instanceof SconPathRules){
+			SconPathRulesAPI api = new SconPathRulesAPI();
+			obj = api.create(baseUrl, orgID, obj);
+			return obj;
+		}
+		String link = baseUrl+API_PREFIX +"org/"+orgID;
+		
 		//if it is a site, create a new site on steelconnect
 		if(obj instanceof SconSite){
 			link = link.concat("/sites");
@@ -554,11 +640,22 @@ public class SconObjectCallApi {
 			link = link.concat("/wans");			
 		}
 		if(obj instanceof SconNode){
-			link = link.concat("/nodes");			
+			if(obj instanceof SconSwitch){
+				link = link.concat("/switches");			
+			}else if (obj instanceof SconAP){
+				link = link.concat("/ap");			
+			} else{
+				SconNode node = (SconNode) obj;
+				//if virtual
+				if(node.getModel().equals(SconNode.SDI_VGW) || node.getModel().equals(SconNode.SDI_AWS)){
+					link = link.concat("/node/virtual/register");
+					
+				}
+				else link = link.concat("/node/register");
+							
+			}
 		}
-		if(obj instanceof SconSwitch){
-			link = link.concat("/switches");			
-		}
+		
 		if(obj instanceof SconZone){
 			link = link.concat("/zones");			
 		}
@@ -577,6 +674,46 @@ public class SconObjectCallApi {
 		jsonObj = SconJsonObjectBuilder.buildSconJsonObject(obj);
 		jsonObj = SconJsonOperations.PostData(link, jsonObj);		
 		System.out.println("jsonObj "+jsonObj.toString()+"\n");
+		JsonValue tempValue = jsonObj.get("id");
+		if(tempValue!=null){
+			String id = StringModifier.removeBrackets(tempValue.toString());
+			obj.setId(id);
+		}
+		                   
+		else return null;
+		
+		return obj;
+	}
+	
+	/**
+	 * 
+	 * @param baseUrl
+	 * @param orgID
+	 * @param obj
+	 * @return
+	 * @throws IOException
+	 */
+	public static SconObject updateSconObject (String baseUrl,String orgID,SconObject obj) throws IOException{
+		if(obj==null) return null;
+		JsonObject jsonObj = null;
+		
+		if(obj instanceof SconPathRules){
+			SconPathRulesAPI api = new SconPathRulesAPI();
+			obj = api.update(baseUrl, orgID, obj);
+			return obj;
+		}
+		
+		String link = baseUrl+API_PREFIX;
+		
+		
+		if(obj instanceof SconPort){
+			SconPort port = (SconPort)obj;
+			link = link.concat("/port/"+port.getId());			
+		}
+		
+		jsonObj = SconJsonObjectBuilder.buildSconJsonObject(obj);
+		jsonObj = SconJsonOperations.PutData(link, jsonObj);		
+		System.out.println("put jsonObj "+jsonObj.toString()+"\n");
 		JsonValue tempValue = jsonObj.get("id");
 		if(tempValue!=null){
 			String id = StringModifier.removeBrackets(tempValue.toString());
@@ -787,28 +924,28 @@ public class SconObjectCallApi {
 			}
 			//create 2 48 ports switches + 2 gateways sdi330
 			try{
-				SconSwitch switch48 = new SconSwitch("", SconNode.SDI_S48, "1", siteID);
+				SconSwitch switch48 = new SconSwitch("", SconNode.SDI_S48, "1", siteID,"");
 				createSconObject(baseUrl,orgID,switch48);
 			} catch (IOException e) {
 			// TODO Auto-generated catch block
 				System.out.println(e.getMessage());
 			}
 			try{
-				SconSwitch switch48 = new SconSwitch("", SconNode.SDI_S48, "1", siteID);
+				SconSwitch switch48 = new SconSwitch("", SconNode.SDI_S48, "1", siteID,"");
 				createSconObject(baseUrl,orgID,switch48);
 			} catch (IOException e) {
 			// TODO Auto-generated catch block
 				System.out.println(e.getMessage());
 			}
 			try{
-				SconSwitch sdi130 = new SconSwitch("", SconNode.SDI_130, "1", siteID);
+				SconSwitch sdi130 = new SconSwitch("", SconNode.SDI_130, "1", siteID,"");
 				createSconObject(baseUrl,orgID,sdi130);
 			} catch (IOException e) {
 			// TODO Auto-generated catch block
 				System.out.println(e.getMessage());
 			}
 			try{
-				SconSwitch sdi130 = new SconSwitch("", SconNode.SDI_130, "1", siteID);
+				SconSwitch sdi130 = new SconSwitch("", SconNode.SDI_130, "1", siteID,"");
 				createSconObject(baseUrl,orgID,sdi130);
 			} catch (IOException e) {
 			// TODO Auto-generated catch block

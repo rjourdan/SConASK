@@ -11,4 +11,26 @@ public class StringModifier {
 		return string;
 		
 	}
+	
+	public static String replaceSpaceByUnderscore(String string){
+		
+		char[] result = string.toCharArray();
+		for(int i=0;i<result.length;i++){
+			if(result[i]==' ') result[i]='_';
+		}
+		
+		return new String(result);
+		
+	}
+	
+	public static String replaceUnderscoreBySpace(String string){
+		
+		char[] result = string.toCharArray();
+		for(int i=0;i<result.length;i++){
+			if(result[i]=='_') result[i]=' ';
+		}	
+		return new String(result);
+		
+	}
+	
 }

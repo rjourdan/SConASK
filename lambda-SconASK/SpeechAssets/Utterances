@@ -12,8 +12,13 @@ CreateSiteIntent {City} {Country}
 CreateSiteIntent {State}
 CreateSiteIntent {Country}
 CreateSiteIntent {City} {State}
+CreateSiteIntent add {Street} {City} {State} to the network
+CreateSiteIntent add {Street} {City} {Country} to the network
 
 ListSitesIntent list the sites
 ListSitesIntent what are the sites in my org
 
 CleanOrgIntent clean my org
+
+PathRuleIntent add a new path rule
+PathRuleIntent allow {Site} users to access {App} via {Link1} with {Link2} as a backup using {QoS} quality of service.

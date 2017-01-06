@@ -2,8 +2,8 @@ package com.riverbed.sconask.beans;
 
 public class SconSwitch extends SconNode {
 
-	public SconSwitch(String name, String model, String simulated, String site) {
-		super(name, model, simulated, site);
+	public SconSwitch(String name, String model, String simulated, String site,String serial) {
+		super(name, model, simulated, site,serial);
 		// TODO Auto-generated constructor stub
 	}
 

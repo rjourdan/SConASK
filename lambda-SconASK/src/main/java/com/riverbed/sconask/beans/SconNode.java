@@ -207,18 +207,20 @@ public class SconNode extends SconObject{
 		}
 		
 		
-		
 		/**
+		 * 
+		 * @param name
 		 * @param model
 		 * @param simulated
 		 * @param site
 		 */
-		public SconNode(String name,String model, String simulated, String site) {
+		public SconNode(String name,String model, String simulated, String site,String serial) {
 			super();
 			this.setName(name);
 			this.model = model;
 			this.simulated = simulated;
 			this.site = site;
+			this.serial = serial;
 		}
 		/**
 		 * 

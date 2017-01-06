@@ -32,7 +32,7 @@ public class SconJsonObjectBuilder {
 			jsonBuilder
 				.add("name", site.getName())
 				.add("longname", site.getLongName())
-				.add("street address",site.getAddress())
+				.add("street_address",site.getAddress())
 				.add("city", site.getCity())
 				.add("country", site.getCountryCode());
 		}
@@ -71,7 +71,15 @@ public class SconJsonObjectBuilder {
 		}
 		
 		if(obj instanceof SconPort){
-					
+			SconPort port = (SconPort) obj;
+			jsonBuilder
+			.add("port_id",port.getPortId())
+			.add("node", port.getNode())
+			.add("type",port.getType())
+			.add("segment", port.getSegment())
+			.add("mac", port.getMac())
+			.add("switch_id", port.getSwitchId());
+			
 		}
 		
 		if(obj instanceof SconNetwork){

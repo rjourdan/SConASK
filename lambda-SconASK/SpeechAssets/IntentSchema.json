@@ -4,6 +4,10 @@
       "intent": "CreateSiteIntent",
       "slots": [
         {
+          "name": "Street",
+          "type": "AMAZON.PostalAddress"
+        },
+        {
           "name": "City",
           "type": "AMAZON.US_CITY"
         },
@@ -13,7 +17,7 @@
         },
         {
           "name": "Country",
-          "type": "LIST_OF_COUNTRIES"
+          "type": "AMAZON.Country"
         },
         {
           "name": "Type",
@@ -26,6 +30,31 @@
     },
     {
       "intent": "CleanOrgIntent"
+    },
+    {
+      "intent": "PathRuleIntent",
+      "slots": [
+        {
+          "name": "Site",
+          "type": "AMAZON.PostalAddress"
+        },
+        {
+          "name": "App",
+          "type": "AMAZON.SoftwareApplication"
+        },
+        {
+          "name": "Link1",
+          "type": "LIST_OF_WANS"
+        },
+        {
+          "name": "Link2",
+          "type": "LIST_OF_WANS"
+        },
+        {
+          "name": "QoS",
+          "type": "QOS"
+        }
+      ]
     },
     {
       "intent": "AMAZON.HelpIntent"

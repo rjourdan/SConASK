@@ -16,28 +16,31 @@ import javax.json.JsonValue;
 import com.riverbed.sconask.beans.SconBroadcast;
 import com.riverbed.sconask.beans.SconNode;
 import com.riverbed.sconask.beans.SconObject;
+import com.riverbed.sconask.beans.SconPathRules;
 import com.riverbed.sconask.beans.SconSite;
 import com.riverbed.sconask.beans.SconSsid;
+import com.riverbed.sconask.beans.SconSwitch;
 import com.riverbed.sconask.beans.SconZone;
 import com.riverbed.sconask.rest.SconJsonOperations;
 import com.riverbed.sconask.rest.SconObjectCallApi;
+import com.riverbed.sconask.util.StringModifier;
 
 
 public class TestSconAPI {
 	    
-	/*  
+	 
 	  
 	public static void main(String[] args){
 		 String url = "https://riverbed-se03.riverbed.cc";
 		 String orgId = "org-Orgrvbd018-1f5a460fb82f09a9";
-		SconSite site = new SconSite("boutik_Miami","Miami","","Miami","US");
-		SconSite site2 = new SconSite("branch_SF","San Francisco","","San Francisco","US");
-	try {
-		site = (SconSite) SconObjectCallApi.createSconObject(url,orgId, site);
-		SconObjectCallApi.applySiteTemplate(url, orgId, site, SconSite.BOUTIQUE);
-		site2 = (SconSite) SconObjectCallApi.createSconObject(url,orgId, site2);
-		SconObjectCallApi.applySiteTemplate(url, orgId, site2, SconSite.BRANCH);
-	
+		 String ruleId ="prule-e3ace585e539ee63";
+		//SconSite site = new SconSite("388_Greenwich_Street","388 Greenwich Street","388 Greenwich Street","New York","United States");
+		try {
+			SconPathRules pathRule = (SconPathRules) SconObjectCallApi.findSconObject(url, "path_rule", ruleId);
+			if(pathRule == null) System.out.println("not found?");
+			pathRule.setActive(true);
+			pathRule = (SconPathRules) SconObjectCallApi.updateSconObject(url,orgId, pathRule);
+		
 	} catch (IOException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
@@ -45,55 +48,55 @@ public class TestSconAPI {
 	//SconObjectCallApi.cleanOrg(url, orgId);
 		 
 	}
-*/
+
 
 	
 
-	
+	/*
 	public static void main(String[] args){
 		 String url = "https://riverbed-se03.riverbed.cc";
 		 String orgId = "org-Orgrvbd018-1f5a460fb82f09a9";
-		List<SconObject> list = SconObjectCallApi.listSconObjects(url, orgId, SconObjectCallApi.NODE);
+		List<SconObject> list = SconObjectCallApi.listSconObjects(url, orgId, SconObjectCallApi.SWITCH);
 		 Iterator<SconObject> it = list.iterator();
 		 while(it.hasNext()){
-			 SconNode node = (SconNode)it.next();
-			 System.out.println(node+"\n");
+			 SconSwitch switchs = (SconSwitch)it.next();
+			 System.out.println("switch "+ switchs+"\n");
 		 }
-		 list = SconObjectCallApi.listSconObjects(url, orgId, SconObjectCallApi.ZONE);
+		 list = SconObjectCallApi.listSconObjects(url, orgId, SconObjectCallApi.SITE);
 		  it = list.iterator();
 		 while(it.hasNext()){
-			 SconZone zone = (SconZone)it.next();
-			 System.out.println(zone+"\n");
+			 SconSite site = (SconSite)it.next();
+			 System.out.println(site+"\n");
 		 }
-		 SconZone zone = new SconZone("printer", "0", "site-NCY-d04a93c2d8c4739b");
-		//SconNode node = new SconNode("switch", SconNode.SDI_S48, "0", "site-NCY-d04a93c2d8c4739b");
+		 //SconZone zone = new SconZone("printer", "0", "site-NCY-d04a93c2d8c4739b");
+		SconNode nodes = new SconNode("gw", SconNode.SDI_1030, "0", "site-plantMunich-6b00aec8a28c1855","");
 	try {
-		SconObjectCallApi.createSconObject(url,orgId, zone);
+		SconObjectCallApi.createSconObject(url,orgId, nodes);
 	} catch (IOException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
-	}
+	}*/
 	
-	/* public static void main(String[] args){
-		 //String url = "https://riverbed-se03.riverbed.cc/api/scm.config/1.0/org/org-Orgrvbd018-1f5a460fb82f09a9/switches";
+	 /*public static void main(String[] args){
+		 String url = "https://riverbed-se03.riverbed.cc/api/scm.config/1.0/org/org-Orgrvbd018-1f5a460fb82f09a9/node/register";
 		 
 		//String url = "https://riverbed-se03.riverbed.cc/api/scm.config/1.0/org/org-trial8932sqYz-2b49018d23d6c2f0/sites";
-		 /*JsonObject json= Json.createObjectBuilder()
-				 .add("site","site-NCY-6eed898e5125f74a")
-				 .add("serial",JsonValue.NULL)
-				 .add("model", SconNode.SDI_330)
-				.add("simulated", "1")
+		 JsonObject json= Json.createObjectBuilder()
+				 .add("site","plantecho-149e17a48e5e9876")
+				 //.add("serial",JsonValue.NULL)
+				 .add("model", SconNode.SDI_VGW)
+				//.add("simulated", "0")
 				//.add("unlock",JsonValue.NULL)
 					
-					.add("license",JsonValue.NULL)
-					.add("location",JsonValue.NULL)
-					.add("router_id",JsonValue.NULL)
-					.add("local_as","1")
-					.add("realm","realm")
-					.add("disable_stp",JsonValue.FALSE)
-					.add("inventory_version_cc","2.2")
-					.add("sitelink", "1")
+//					.add("license",JsonValue.NULL)
+//					.add("location",JsonValue.NULL)
+//					.add("router_id",JsonValue.NULL)
+//					.add("local_as","1")
+//					.add("realm","realm")
+//					.add("disable_stp",JsonValue.FALSE)
+//					.add("inventory_version_cc","2.2")
+//					.add("sitelink", "1")
 					//.add("org", "org-Orgrvbd018-1f5a460fb82f09a9")
 	    			.build();
 	    	
@@ -106,22 +109,18 @@ public class TestSconAPI {
 			if(json!=null) System.out.println(json.toString());
 	}*/
 	
-		/*public static void main(String[] args){
-		 String url = "https://riverbed-se03.riverbed.cc/api/scm.config/1.0/org/org-Orgrvbd018-1f5a460fb82f09a9/nodes";
+	/*public static void main(String[] args){
+		 String url = "https://riverbed-se03.riverbed.cc/api/scm.config/1.0/org/org-Orgrvbd018-1f5a460fb82f09a9/sites";
 		//String url = "https://riverbed-se03.riverbed.cc/api/scm.config/1.0/org/org-trial8932sqYz-2b49018d23d6c2f0/sites";
 		 JsonObject json= Json.createObjectBuilder()
-				 	.add("site",node.getSite())
-					.add("model", node.getModel())
-					.add("simulated", JsonValue.TRUE)
-					.add("serial",JsonValue.NULL)
-					.build();
-	    			/*add("name", "NCY")
-	    			.add("longname", "Annecy")
+	    			.add("name", "NYC")
+	    			.add("longname", "New York")
 	    			//.add("org", "org-Orgrvbd018-1f5a460fb82f09a9")
-	    			.add("street address","14 chemin de l'huilerie")
-	    			.add("city", "Annecy")
-	    			.add("country", "France")
-	    			.add("timezone", "Europe/Paris")
+	    			.add("street_address","388 Greenwich St")
+	    			.add("city", "New York")
+	    			.add("country", "USA")
+	    			.add("timezone", "Americas/Boston")
+	    			.build();
 	    			
 	    	
 			try {
@@ -132,6 +131,8 @@ public class TestSconAPI {
 			}
 			if(json!=null) System.out.println(json.toString());
 	    	
+			String test ="";
+			System.out.println("resultat "+ test.isEmpty());
 	    }*/
 		
 	 
