@@ -21,8 +21,14 @@ import com.amazon.speech.ui.OutputSpeech;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SsmlOutputSpeech;
+import com.riverbed.sconask.beans.SconApp;
+import com.riverbed.sconask.beans.SconPathRules;
 import com.riverbed.sconask.beans.SconSite;
+import com.riverbed.sconask.beans.SconWan;
+import com.riverbed.sconask.rest.SconAppAPI;
 import com.riverbed.sconask.rest.SconObjectCallApi;
+import com.riverbed.sconask.rest.SconSiteAPI;
+import com.riverbed.sconask.rest.SconWanAPI;
 import com.riverbed.sconask.util.StringModifier;
 
 public class SconASKSpeechlet implements Speechlet {
@@ -35,6 +41,12 @@ public class SconASKSpeechlet implements Speechlet {
 	 private static final String SLOT_TYPE = "Type";
 	 private static final String SLOT_COUNTRY = "Country";
 	 private static final String SLOT_STREET = "Street";
+	 private static final String SLOT_SITE = "Site";
+	 private static final String SLOT_APP = "App";
+	 private static final String SLOT_PRIMARY = "Primary";
+	 private static final String SLOT_BACKUP = "Backup";
+	 private static final String SLOT_QOS = "QoS";
+	 private static final String SLOT_RULE = "Rule";
 	
 	public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException {
 		log.debug("on Intent requestId={"+request.getRequestId()+"}, sessionId={}");
@@ -45,11 +57,19 @@ public class SconASKSpeechlet implements Speechlet {
 
         if ("CreateSiteIntent".equals(intentName)) {
             return handleCreateSiteRequest(intent, session);
+            
         } else if ("ListSitesIntent".equals(intentName)) {
             return handleListSitesRequest(session);
         } else if ("CleanOrgIntent".equals(intentName)) {
             return handleCleanOrgRequest(session);
-        }else if ("AMAZON.HelpIntent".equals(intentName)) {
+        } else if("PathRuleIntent".equals(intentName)){
+        	return handlePathRuleRequest(intent,session);
+        } else if("SpaceOdysseyIntent".equals(intentName)){
+        	String speechOutput = "I’m sorry Dave, I am afraid I can’t do that";
+        	String repromptText = "";
+        	return newAskResponse(speechOutput,repromptText);
+        } 
+        else if ("AMAZON.HelpIntent".equals(intentName)) {
             // Create the plain text output.
             String speechOutput =
                     "With SteelConnect App for Amazon Echo , you can"
@@ -108,6 +128,12 @@ public class SconASKSpeechlet implements Speechlet {
 		getEnvironnmentData(session);
 	}
 	
+	/**
+	 * 
+	 * @param intent
+	 * @param session
+	 * @return
+	 */
 	private SpeechletResponse handleCreateSiteRequest(Intent intent, Session session) {
 		Slot citySlot = intent.getSlot(SLOT_CITY);
         Slot countrySlot = intent.getSlot(SLOT_COUNTRY);
@@ -364,4 +390,190 @@ public class SconASKSpeechlet implements Speechlet {
 		return newAskResponse(stringOutput, repromptText);
 	}
     
+    private SpeechletResponse handlePathRuleRequest(Intent intent, Session session) {
+		Slot siteSlot = intent.getSlot(SLOT_SITE);
+		Slot appSlot = intent.getSlot(SLOT_APP);
+		Slot primarySlot = intent.getSlot(SLOT_PRIMARY);
+		Slot backupSlot = intent.getSlot(SLOT_BACKUP);
+		Slot qosSlot = intent.getSlot(SLOT_QOS);
+		Slot ruleSlot = intent.getSlot(SLOT_RULE);
+		String pathRuleId = (String)session.getAttribute("pathrule_id");
+		
+        boolean testSite = false;
+        boolean testApp = false;
+        boolean testPrimary = false;
+       boolean testQos = false;
+        
+        
+        if (siteSlot != null && siteSlot.getValue() != null) {
+        	session.setAttribute(SLOT_SITE, siteSlot.getValue());
+        	testSite=true;
+        }
+        
+        if (appSlot != null && appSlot.getValue() != null) {
+        	session.setAttribute(SLOT_APP, appSlot.getValue());
+        	testApp=true;
+        }
+        
+        if (primarySlot != null && primarySlot.getValue() != null) {
+        	session.setAttribute(SLOT_PRIMARY, primarySlot.getValue());
+        	System.out.println("SLOT PRIMARY = "+primarySlot.getValue()+"\n");
+        	testPrimary=true;
+        }
+        
+        if (backupSlot != null && backupSlot.getValue() != null) {
+        	session.setAttribute(SLOT_BACKUP, backupSlot.getValue());
+        	System.out.println("SLOT BACKUP = "+backupSlot.getValue()+"\n");
+        	
+        }
+        
+        if (qosSlot != null && qosSlot.getValue() != null) {
+        	session.setAttribute(SLOT_QOS, qosSlot.getValue().toLowerCase());
+        	testQos=true;
+        }
+        
+        if ((ruleSlot != null && ruleSlot.getValue() != null) || pathRuleId!=null) {
+        	return activePathRule(session,pathRuleId);
+        }
+        
+        //if there is no SLOTS nor a previous rule created, user said "add a new path rule"
+        if(!testSite && !testApp && !testPrimary && !testQos && pathRuleId==null){
+        	return newAskResponse("","");
+        }
+        /*
+      //site was not indicated, it must be reprompted
+        if(!testSite) return handleSiteDialogRequest(intent, session);
+        
+        //if country was not indicated nor states for the US then it must be reprompted
+        if(!testCountry) return handleCountryDialogRequest(intent, session);
+        
+      //if name was not indicated then it must be reprompted
+        if(!testType) return handleTypeDialogRequest(intent, session);
+        
+        //if street was not indicated, add "" in session
+        if(!testStreet) session.setAttribute(SLOT_STREET, "");
+        */
+        return createPathRule(session);
+	}
+    
+    /**
+     * 
+     * @param session
+     * @return
+     */
+    private SpeechletResponse createPathRule(Session session) {
+		
+    	String stringOutput = "";
+    	String repromptText = "";
+    	
+    	String url = (String)session.getAttribute("URL");
+    	String orgID = (String) session.getAttribute("ORGID");
+    	
+    	String dsttype = SconPathRules.DST_ANY;
+    	String srctype = SconPathRules.SRC_ALL;
+    
+    	String sapps = "";
+    	String appli = (String)session.getAttribute(SLOT_APP);
+    	String[] apps = new String[1];
+    	SconApp app = null;
+		SconAppAPI api = new SconAppAPI();
+		app = (SconApp)api.getByName(url, appli,orgID);
+		if(app==null) {
+			System.out.println("appli not found "+appli+"\n");
+			apps[0] = "";
+			
+		}
+		else {
+			sapps = app.getId();
+			dsttype = SconPathRules.DST_APPS;
+		}
+    	
+		
+    			
+    	String qos = (String)session.getAttribute(SLOT_QOS);
+    	String marking = "dscp_0";
+    	String[] zones =  new String[0];
+    	
+    	String[] sites = new String[1];
+    	String siteName = (String)session.getAttribute(SLOT_SITE);
+    	siteName = StringModifier.replaceSpaceByUnderscore(siteName);
+    	SconSite site = null;
+    	SconSiteAPI siteApi = new SconSiteAPI();
+    	site = (SconSite)siteApi.getByName(url, siteName, orgID);
+    	if(site!=null) sites[0] = site.getId();
+    	
+    	
+    	String primaryName = (String)session.getAttribute(SLOT_PRIMARY);
+    	String backupName = (String)session.getAttribute(SLOT_BACKUP);
+    	SconWanAPI wanApi = new SconWanAPI();
+    	SconWan wanPrimary = (SconWan)wanApi.getByName(url, primaryName,orgID);
+    	SconWan wanBackup = (SconWan)wanApi.getByName(url, backupName,orgID);
+    	
+    	String primaryId="";
+    	if(wanPrimary!=null) primaryId = wanPrimary.getId();
+    	
+    	String backupId="";
+    	if(wanBackup!=null) backupId = wanBackup.getId();
+    	
+    	String[] path_preference = {primaryId,backupId};
+    	boolean active = false;
+    	String dscp = "";
+    	String[] devices =  new String[0];
+    	String tags = "";
+    	String[] users =  new String[0];
+    	
+    	SconPathRules pathrule = new SconPathRules(dsttype, srctype, qos, marking, zones, sites, path_preference, active, dscp, apps, devices, tags, users,sapps);
+    	
+    	try {
+    		pathrule = (SconPathRules) SconObjectCallApi.createSconObject(url,orgID, pathrule);	
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			pathrule = null;
+			e.printStackTrace();
+		}
+		
+		if(pathrule!=null){
+			stringOutput = "The rule has been successfuly created";
+			session.setAttribute("pathrule_id", pathrule.getId());
+		} else{
+			stringOutput = "The system faced a problem, please try again later on";
+		}
+    	
+    	return newAskResponse(stringOutput, repromptText);
+    }
+    
+    /**
+     * 
+     * @param session
+     * @param pathRuleId
+     * @return
+     */
+    private SpeechletResponse activePathRule(Session session, String pathRuleId) {
+    	String stringOutput = "";
+    	String repromptText = "";
+    	
+    	String url = (String)session.getAttribute("URL");
+    	String orgId = (String) session.getAttribute("ORGID");
+    	
+    	SconPathRules pathRule = (SconPathRules) SconObjectCallApi.findSconObject(url, "path_rule", pathRuleId);
+		if(pathRule == null) System.out.println("pathRule not found?");
+		pathRule.setActive(true);
+		try {
+			pathRule = (SconPathRules) SconObjectCallApi.updateSconObject(url,orgId, pathRule);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			pathRule = null;
+			e.printStackTrace();
+		}
+		
+		if(pathRule!=null){
+			stringOutput = "The rule has been successfuly enabled";
+		} else{
+			stringOutput = "The system faced a problem, please try again later on";
+		}
+    	
+    	return newAskResponse(stringOutput, repromptText);
+    }
+    	
 }

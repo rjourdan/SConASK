@@ -474,7 +474,7 @@ public class SconObjectCallApi {
 		
 		if(type.equals(PATHRULE)){
 			SconPathRulesAPI api = new SconPathRulesAPI();
-			result = api.get(baseUrl, objID);
+			result = api.get(baseUrl, objID,null);
 			return result;
 		}
 		

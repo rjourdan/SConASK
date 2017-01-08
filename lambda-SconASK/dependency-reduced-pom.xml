@@ -4,7 +4,7 @@
   <groupId>Romain</groupId>
   <artifactId>lambda-SconASK</artifactId>
   <name>SconASK</name>
-  <version>0.0.6</version>
+  <version>0.0.7</version>
   <scm>
     <connection>scm:git:https://github.com/amzn/alexa-skills-kit-java.git</connection>
     <developerConnection>scm:git:https://github.com/amzn/alexa-skills-kit-java.git</developerConnection>

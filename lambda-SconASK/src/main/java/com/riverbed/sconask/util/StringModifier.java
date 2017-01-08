@@ -32,5 +32,6 @@ public class StringModifier {
 		return new String(result);
 		
 	}
+
 	
 }

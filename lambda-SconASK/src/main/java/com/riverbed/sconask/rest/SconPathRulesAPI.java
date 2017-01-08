@@ -1,6 +1,7 @@
 package com.riverbed.sconask.rest;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
@@ -80,11 +81,17 @@ public class SconPathRulesAPI implements SconObjectAPI {
 		String[] users = new String[0];
 		if(!jsonObj.isNull("users"))
 			users = SconObjectCallApi.jsonArrayToStringArray(jsonObj.getJsonArray("users"));
+
+		String sapps="";
+		tempValue = jsonObj.get("sapps");
+		if(tempValue!=null) sapps = tempValue.toString();
 		
-		sconObj = new SconPathRules(id, dsttype, srctype, qos, marking, zones, uid, sites, path_preference, active, dscp, apps, devices, tags, users);
+		sconObj = new SconPathRules(id, dsttype, srctype, qos, marking, zones, uid, sites, path_preference, active, dscp, apps, devices, tags, users,sapps);
 		return sconObj;
 	}
 
+	
+	
 	@Override
 	public JsonObject buildSconJsonObject(SconObject obj) {
 		JsonObject json = null;
@@ -101,35 +108,35 @@ public class SconPathRulesAPI implements SconObjectAPI {
 		JsonArrayBuilder sitesBuilder = Json.createArrayBuilder();
 		if(pathRule.getSites()!=null){
 			for (String site : pathRule.getSites()){
-				sitesBuilder.add(site);
+				if(site!=null) sitesBuilder.add(site);
 			}
 		}
 		
 		JsonArrayBuilder pathPreferenceBuilder = Json.createArrayBuilder();
 		if(pathRule.getPath_preference()!=null){
 			for (String path : pathRule.getPath_preference()){
-				pathPreferenceBuilder.add(path);
+				if(path!=null) pathPreferenceBuilder.add(path);
 			}
 		}
 		
 		JsonArrayBuilder appsBuilder = Json.createArrayBuilder();
 		if(pathRule.getApps()!=null){
 			for (String app : pathRule.getApps()){
-				appsBuilder.add(app);
+				if(app!=null) appsBuilder.add(app);
 			}
 		}
 		
 		JsonArrayBuilder devicesBuilder = Json.createArrayBuilder();
 		if(pathRule.getDevices()!=null){
 			for (String device : pathRule.getDevices()){
-				devicesBuilder.add(device);
+				if(device!=null) devicesBuilder.add(device);
 			}
 		}
 		
 		JsonArrayBuilder usersBuilder = Json.createArrayBuilder();
 		if(pathRule.getUsers()!=null){
 			for (String user : pathRule.getUsers()){
-				usersBuilder.add(user);
+				if(user!=null) usersBuilder.add(user);
 			}
 		}
 		
@@ -137,18 +144,20 @@ public class SconPathRulesAPI implements SconObjectAPI {
 		if(pathRule.isActive()) active = "1";
 		
 		jsonBuilder
+		.add("path_preference", pathPreferenceBuilder)
 		.add("dsttype",pathRule.getDsttype())
 		.add("srctype", pathRule.getSrctype())
 		.add("qos",pathRule.getQos())
 		.add("marking", pathRule.getMarking())
 		.add("zones", zonesBuilder)
-		.add("uid", pathRule.getUid())
+		//.add("uid", pathRule.getUid())
 		.add("active", active)
 		.add("sites", sitesBuilder)
-		.add("path_preference", pathPreferenceBuilder)
+		.add("apps", appsBuilder)
 		.add("dscp", pathRule.getDscp())
 		.add("devices", devicesBuilder)
 		.add("tags", pathRule.getTags())
+		.add("sapps", pathRule.getSapps())
 		.add("users", usersBuilder);
 		
 		json = jsonBuilder.build();
@@ -156,14 +165,10 @@ public class SconPathRulesAPI implements SconObjectAPI {
 		return json;
 	}
 
+	
+	
 	@Override
-	public String[] getAll(String baseUrl, String orgID) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public SconObject get(String baseUrl, String objId) {
+	public SconObject get(String baseUrl, String objId,String orgID) {
 		SconObject result = null;
 		String url = baseUrl + API_PREFIX+"path_rule/"+objId;
 		
@@ -182,6 +187,8 @@ public class SconPathRulesAPI implements SconObjectAPI {
 		return result;
 	}
 
+	
+	
 	@Override
 	public SconObject create(String baseUrl, String orgID, SconObject obj) {
 		if(obj==null) return null;
@@ -208,6 +215,8 @@ public class SconPathRulesAPI implements SconObjectAPI {
 		return obj;
 	}
 
+	
+	
 	@Override
 	public SconObject update(String baseUrl, String orgID, SconObject obj) {
 		if(obj==null) return null;
@@ -236,6 +245,18 @@ public class SconPathRulesAPI implements SconObjectAPI {
 
 	@Override
 	public SconObject delete(String baseUrl, String orgID, SconObject obj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public SconObject getByName(String baseUrl, String objectName,String orgID) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<SconObject> getAll(String baseUrl, String orgID) {
 		// TODO Auto-generated method stub
 		return null;
 	}

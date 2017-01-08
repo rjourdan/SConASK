@@ -35,6 +35,7 @@ public class SconPathRules extends SconObject {
 	private String[] devices;
 	private String tags;
 	private String[] users;
+	private String sapps;
 	
 	
 	
@@ -272,26 +273,27 @@ public class SconPathRules extends SconObject {
 
 
 	/**
-	 * 
-	 * @param id
-	 * @param dsttype
-	 * @param srctype
-	 * @param qos
-	 * @param marking
-	 * @param zones
-	 * @param iud
-	 * @param sites
-	 * @param path_preference
-	 * @param active
-	 * @param dscp
-	 * @param apps
-	 * @param devices
-	 * @param tags
-	 * @param users
+	 * @return the sapps
 	 */
+	public String getSapps() {
+		return sapps;
+	}
+
+
+
+	/**
+	 * @param sapps the sapps to set
+	 */
+	public void setSapps(String sapps) {
+		this.sapps = sapps;
+	}
+
+
+
+
 	public SconPathRules(String id, String dsttype, String srctype, String qos, String marking, String[] zones, String uid,
 			String[] sites, String[] path_preference, boolean active, String dscp, String[] apps, String[] devices,
-			String tags, String[] users) {
+			String tags, String[] users, String sapps) {
 		super();
 		this.setId(id);
 		this.dsttype = dsttype;
@@ -308,6 +310,7 @@ public class SconPathRules extends SconObject {
 		this.devices = devices;
 		this.tags = tags;
 		this.users = users;
+		this.sapps = sapps;
 	}
 
 
@@ -348,6 +351,41 @@ public class SconPathRules extends SconObject {
 		this.users = users;
 	}
 
+	/**
+	 * 
+	 * @param dsttype
+	 * @param srctype
+	 * @param qos
+	 * @param marking
+	 * @param zones
+	 * @param sites
+	 * @param path_preference
+	 * @param active
+	 * @param dscp
+	 * @param apps
+	 * @param devices
+	 * @param tags
+	 * @param users
+	 */
+	public SconPathRules(String dsttype, String srctype, String qos, String marking, String[] zones,
+			String[] sites, String[] path_preference, boolean active, String dscp, String[] apps, String[] devices,
+			String tags, String[] users, String sapps) {
+		super();
+		this.dsttype = dsttype;
+		this.srctype = srctype;
+		this.qos = qos;
+		this.marking = marking;
+		this.zones = zones;
+		this.sites = sites;
+		this.path_preference = path_preference;
+		this.active = active;
+		this.dscp = dscp;
+		this.apps = apps;
+		this.devices = devices;
+		this.tags = tags;
+		this.users = users;
+		this.sapps = sapps;
+	}
 
 
 	public SconPathRules() {

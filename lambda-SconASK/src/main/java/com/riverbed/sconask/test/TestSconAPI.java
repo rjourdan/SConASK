@@ -13,6 +13,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
+import com.riverbed.sconask.beans.SconApp;
 import com.riverbed.sconask.beans.SconBroadcast;
 import com.riverbed.sconask.beans.SconNode;
 import com.riverbed.sconask.beans.SconObject;
@@ -21,6 +22,7 @@ import com.riverbed.sconask.beans.SconSite;
 import com.riverbed.sconask.beans.SconSsid;
 import com.riverbed.sconask.beans.SconSwitch;
 import com.riverbed.sconask.beans.SconZone;
+import com.riverbed.sconask.rest.SconAppAPI;
 import com.riverbed.sconask.rest.SconJsonOperations;
 import com.riverbed.sconask.rest.SconObjectCallApi;
 import com.riverbed.sconask.util.StringModifier;
@@ -28,8 +30,12 @@ import com.riverbed.sconask.util.StringModifier;
 
 public class TestSconAPI {
 	    
+	public static void main(String[] args){
+		String sfdc = "sales force";
+		System.out.println("["+sfdc.substring(0, 6)+"]");
+	}
 	 
-	  
+	  /*
 	public static void main(String[] args){
 		 String url = "https://riverbed-se03.riverbed.cc";
 		 String orgId = "org-Orgrvbd018-1f5a460fb82f09a9";
@@ -47,7 +53,7 @@ public class TestSconAPI {
 	}
 	//SconObjectCallApi.cleanOrg(url, orgId);
 		 
-	}
+	}*/
 
 
 	
