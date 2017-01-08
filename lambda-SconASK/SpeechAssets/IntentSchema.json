@@ -43,16 +43,29 @@
           "type": "AMAZON.SoftwareApplication"
         },
         {
-          "name": "Link1",
+          "name": "Primary",
           "type": "LIST_OF_WANS"
         },
         {
-          "name": "Link2",
+          "name": "Backup",
           "type": "LIST_OF_WANS"
         },
         {
           "name": "QoS",
           "type": "QOS"
+        },
+        {
+          "name": "Rule",
+          "type": "AMAZON.NUMBER"
+        }
+      ]
+    },
+    {
+      "intent": "SpaceOdysseyIntent",
+      "slots": [
+        {
+          "name": "Time",
+          "type": "AMAZON.TIME"
         }
       ]
     },

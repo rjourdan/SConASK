@@ -12,8 +12,8 @@ CreateSiteIntent {City} {Country}
 CreateSiteIntent {State}
 CreateSiteIntent {Country}
 CreateSiteIntent {City} {State}
-CreateSiteIntent add {Street} {City} {State} to the network
-CreateSiteIntent add {Street} {City} {Country} to the network
+CreateSiteIntent add {Street} in {City} {State} to the network
+CreateSiteIntent add {Street} in {City} {Country} to the network
 
 ListSitesIntent list the sites
 ListSitesIntent what are the sites in my org
@@ -21,4 +21,14 @@ ListSitesIntent what are the sites in my org
 CleanOrgIntent clean my org
 
 PathRuleIntent add a new path rule
-PathRuleIntent allow {Site} users to access {App} via {Link1} with {Link2} as a backup using {QoS} quality of service.
+PathRuleIntent allow {Site} users to access {App} via {Primary} with {Backup} as a backup using {QoS} quality of service.
+PathRuleIntent {Site}
+PathRuleIntent {App}
+PathRuleIntent {QoS}
+PathRuleIntent primary {Primary}
+PathRuleIntent backup {Backup}
+PathRuleIntent priority {QoS}
+PathRuleIntent enable the rule number {Rule}
+PathRuleIntent enable the rule {Rule}
+
+SpaceOdysseyIntent  Add an alarm for {Time} for change control
