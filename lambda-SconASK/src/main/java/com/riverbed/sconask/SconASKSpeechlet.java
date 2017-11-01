@@ -371,7 +371,7 @@ public class SconASKSpeechlet implements Speechlet {
 		site = new SconSite(name, longname, address, city, country);
 		try {
 			site = (SconSite) SconObjectCallApi.createSconObject(url,orgID, site);
-			if(!testAddress) SconObjectCallApi.applySiteTemplate(url,orgID,site,type);	
+			//if(!testAddress) SconObjectCallApi.applySiteTemplate(url,orgID,site,type);	
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -436,26 +436,35 @@ public class SconASKSpeechlet implements Speechlet {
         	return activePathRule(session,pathRuleId);
         }
         
-        //if there is no SLOTS nor a previous rule created, user said "add a new path rule"
+        //if there is no SLOTS nor a previous rule created, user said "create a new path rule"
         if(!testSite && !testApp && !testPrimary && !testQos && pathRuleId==null){
-        	return newAskResponse("","");
+        	return newAskResponse("indicate your path rule","");
         }
-        /*
+        
       //site was not indicated, it must be reprompted
-        if(!testSite) return handleSiteDialogRequest(intent, session);
+        //if(!testSite) return handleSiteDialogRequest(intent, session);
         
-        //if country was not indicated nor states for the US then it must be reprompted
-        if(!testCountry) return handleCountryDialogRequest(intent, session);
+        //if QoS was not indicated then it must be reprompted
+        if(!testQos) return handleQoSDialogRequest(intent, session);
         
-      //if name was not indicated then it must be reprompted
-        if(!testType) return handleTypeDialogRequest(intent, session);
         
-        //if street was not indicated, add "" in session
-        if(!testStreet) session.setAttribute(SLOT_STREET, "");
-        */
+        
         return createPathRule(session);
 	}
     
+    
+    private SpeechletResponse handleQoSDialogRequest(Intent intent, Session session) {
+		String stringOutput = "";
+    	String repromptText = "";
+    	
+    	Slot qosSlot = intent.getSlot(SLOT_QOS);
+    	
+    	//there was no type indicated
+    	stringOutput = "Which priority do you want to apply?";
+    
+    	repromptText = "QOS can be auto, urgent, high, normal or low";
+    	return newAskResponse(stringOutput, repromptText);
+	}
     /**
      * 
      * @param session
@@ -495,13 +504,15 @@ public class SconASKSpeechlet implements Speechlet {
     	String[] zones =  new String[0];
     	
     	String[] sites = new String[1];
-    	String siteName = (String)session.getAttribute(SLOT_SITE);
-    	siteName = StringModifier.replaceSpaceByUnderscore(siteName);
-    	SconSite site = null;
-    	SconSiteAPI siteApi = new SconSiteAPI();
-    	site = (SconSite)siteApi.getByName(url, siteName, orgID);
-    	if(site!=null) sites[0] = site.getId();
-    	
+    	if(session.getAttribute(SLOT_SITE)!=null){
+	    	String siteName = (String)session.getAttribute(SLOT_SITE);
+	    	siteName = StringModifier.replaceSpaceByUnderscore(siteName);
+	    	SconSite site = null;
+	    	SconSiteAPI siteApi = new SconSiteAPI();
+	    	site = (SconSite)siteApi.getByName(url, siteName, orgID);
+	    	if(site!=null) sites[0] = site.getId();
+    	}
+    	else sites = new String [0];
     	
     	String primaryName = (String)session.getAttribute(SLOT_PRIMARY);
     	String backupName = (String)session.getAttribute(SLOT_BACKUP);

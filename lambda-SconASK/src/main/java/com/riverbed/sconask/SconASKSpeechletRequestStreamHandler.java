@@ -18,6 +18,7 @@ public final class SconASKSpeechletRequestStreamHandler extends SpeechletRequest
 	private static final Set<String> supportedApplicationIds = new HashSet<String>();
     static {
         supportedApplicationIds.add("amzn1.ask.skill.d1819d29-39fc-411c-97df-816cc79c4383");
+        supportedApplicationIds.add("amzn1.ask.skill.d0e924d4-62f4-4861-8648-b35dd94e6c7a");
     }
     
     public SconASKSpeechletRequestStreamHandler(){
