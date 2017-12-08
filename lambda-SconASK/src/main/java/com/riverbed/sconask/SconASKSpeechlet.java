@@ -1,12 +1,12 @@
 package com.riverbed.sconask;
 
 
-
-
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.amazon.speech.json.SpeechletRequestEnvelope;
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.slu.Slot;
 import com.amazon.speech.speechlet.IntentRequest;
@@ -14,13 +14,14 @@ import com.amazon.speech.speechlet.LaunchRequest;
 import com.amazon.speech.speechlet.Session;
 import com.amazon.speech.speechlet.SessionEndedRequest;
 import com.amazon.speech.speechlet.SessionStartedRequest;
-import com.amazon.speech.speechlet.Speechlet;
-import com.amazon.speech.speechlet.SpeechletException;
+
 import com.amazon.speech.speechlet.SpeechletResponse;
+import com.amazon.speech.speechlet.SpeechletV2;
 import com.amazon.speech.ui.OutputSpeech;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazon.speech.ui.SsmlOutputSpeech;
+
 import com.riverbed.sconask.beans.SconApp;
 import com.riverbed.sconask.beans.SconPathRules;
 import com.riverbed.sconask.beans.SconSite;
@@ -31,9 +32,9 @@ import com.riverbed.sconask.rest.SconSiteAPI;
 import com.riverbed.sconask.rest.SconWanAPI;
 import com.riverbed.sconask.util.StringModifier;
 
-public class SconASKSpeechlet implements Speechlet {
+public class SconASKSpeechlet implements SpeechletV2 {
 	
-	 static final Logger log = Logger.getLogger(SconASKSpeechlet.class);
+	 private static final Logger log = LoggerFactory.getLogger(SconASKSpeechlet.class);
 	 private static final String URL = "URL";
 	 private static final String ORGID = "ORGID";
 	 private static final String SLOT_CITY = "City";
@@ -47,12 +48,44 @@ public class SconASKSpeechlet implements Speechlet {
 	 private static final String SLOT_BACKUP = "Backup";
 	 private static final String SLOT_QOS = "QoS";
 	 private static final String SLOT_RULE = "Rule";
-	
-	public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException {
-		log.debug("on Intent requestId={"+request.getRequestId()+"}, sessionId={}");
-		getEnvironnmentData(session);
+
+
+		@Override
+		public SpeechletResponse onLaunch(SpeechletRequestEnvelope<LaunchRequest> requestEnvelope) {
+			log.info("onLaunch requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(),
+			requestEnvelope.getSession().getSessionId());
+			Session session = requestEnvelope.getSession();
+			getEnvironnmentData(session);
+			String speechOutput = "<prosody pitch=\"low\" rate=\"slow\">Welcome to Riverbed's Command Center for Amazon Echo</prosody>";
+			String secondSpeech = "Please tell me what you want to do like create a site or list me the sites";
+			return newAskResponse("<speak>" + speechOutput + "</speak>",true,secondSpeech,false);
+		}
+
+		@Override
+		public void onSessionEnded(SpeechletRequestEnvelope<SessionEndedRequest> requestEnvelope) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onSessionStarted(SpeechletRequestEnvelope<SessionStartedRequest> requestEnvelope) {
+			log.info("onSessionStarted requestId={}, sessionId={}", requestEnvelope.getRequest().getRequestId(),
+					requestEnvelope.getSession().getSessionId());
+					Session session = requestEnvelope.getSession();
+					getEnvironnmentData(session);
+			
+		}
+	    	
 		
-		Intent intent = request.getIntent();
+	@Override
+	public SpeechletResponse onIntent(SpeechletRequestEnvelope<IntentRequest> requestEnvelope) {
+		IntentRequest request = requestEnvelope.getRequest();
+        Session session = requestEnvelope.getSession();
+        log.info("onIntent requestId={}, sessionId={}", request.getRequestId(),
+                session.getSessionId());
+
+        Intent intent = request.getIntent();
+	
         String intentName = intent.getName();
 
         if ("CreateSiteIntent".equals(intentName)) {
@@ -60,16 +93,31 @@ public class SconASKSpeechlet implements Speechlet {
             
         } else if ("ListSitesIntent".equals(intentName)) {
             return handleListSitesRequest(session);
-        } else if ("CleanOrgIntent".equals(intentName)) {
-            return handleCleanOrgRequest(session);
-        } else if("PathRuleIntent".equals(intentName)){
+        } // else if ("CleanOrgIntent".equals(intentName)) {
+           // return handleCleanOrgRequest(session);
+       // }
+        else if("PathRuleIntent".equals(intentName)){
         	return handlePathRuleRequest(intent,session);
         } else if("SpaceOdysseyIntent".equals(intentName)){
         	String speechOutput = "I’m sorry Dave, I am afraid I can’t do that";
         	String repromptText = "";
         	return newAskResponse(speechOutput,repromptText);
-        } 
-        else if ("AMAZON.HelpIntent".equals(intentName)) {
+		} else if("CheckSiteIntent".equals(intentName)){
+			String speechOutput = "<say-as interpret-as=\"interjection\">ta da</say-as><break time=\"0.2s\" />"
+					+"<s><prosody rate=\"slow\">Your new site in AWS is coming online now </prosody></s>"
+					+ "<s><prosody rate=\"slow\">A new site in Miami has been created but there is no appliance</prosody></s>"
+					+ "<s>All other sites are online and connected</s>";
+			return newAskResponse("<speak>" + speechOutput + "</speak>",true,"",false);
+		} else if("UtilizationIntent".equals(intentName)){
+			String speechOutput = "<s>Average utilization is less than 50% on average</s>"
+					+ "  <s><say-as interpret-as=\"interjection\">watch out </say-as>Highest average utilization is in Helsinki with 75%</s>";
+			return newAskResponse("<speak>" + speechOutput + "</speak>",true,"",false);
+		} else if("PerformanceIntent".equals(intentName)){
+			String speechOutput = "<say-as interpret-as=\"interjection\">Wow</say-as> <prosody rate=\"slow\">Peak through of the MPLS WAN is higher"
+					+ " than Internet-based WAN in Elkhart, Kansas </prosody><break time=\"1s\" /><say-as interpret-as=\"interjection\">good luck</say-as>";
+			return newAskResponse("<speak>" + speechOutput + "</speak>",true,"",false);
+		
+		}else if ("AMAZON.HelpIntent".equals(intentName)) {
             // Create the plain text output.
             String speechOutput =
                     "With SteelConnect App for Amazon Echo , you can"
@@ -92,41 +140,12 @@ public class SconASKSpeechlet implements Speechlet {
             outputSpeech.setText("Goodbye");
 
             return SpeechletResponse.newTellResponse(outputSpeech);
-        } else {
-            throw new SpeechletException("Invalid Intent");
-}
+        } 
+        
+        return null;
 	}
 
-	/**
-	 * The service receives a LaunchRequest when the user invokes the skill with the invocation name, 
-	 * but does not provide any command mapping to an intent. 
-	 * Alexa will ask for the Google Authenticator token to open the encrypted file containing
-	 * SCM url
-	 * org id
-	 * username
-	 * password
-	 * 
-	 *
-	 */
-	public SpeechletResponse onLaunch(LaunchRequest request, Session session) throws SpeechletException {
-		// TODO Auto-generated method stub
-		////log.info("onLaunch requestId={}, sessionId={}", request.getRequestId(),session.getSessionId());
-		log.debug("onLaunch requestId={"+request.getRequestId()+"}, sessionId={}");
-		getEnvironnmentData(session);
-		return newAskResponse("Welcome to SteelConnect App for Amazon Echo","Please tell me what you want to do like create a site or list me the sites");
 	
-	}
-
-	public void onSessionEnded(SessionEndedRequest arg0, Session arg1) throws SpeechletException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void onSessionStarted(SessionStartedRequest request, Session session) throws SpeechletException {
-		// TODO Auto-generated method stub
-		log.debug("onSessionStarted requestId={"+request.getRequestId()+"}, sessionId={}");
-		getEnvironnmentData(session);
-	}
 	
 	/**
 	 * 
@@ -328,16 +347,15 @@ public class SconASKSpeechlet implements Speechlet {
 
         if (isRepromptSsml) {
             repromptOutputSpeech = new SsmlOutputSpeech();
-            ((SsmlOutputSpeech) repromptOutputSpeech).setSsml(stringOutput);
+            ((SsmlOutputSpeech) repromptOutputSpeech).setSsml(repromptText);
         } else {
             repromptOutputSpeech = new PlainTextOutputSpeech();
             ((PlainTextOutputSpeech) repromptOutputSpeech).setText(repromptText);
         }
-
         Reprompt reprompt = new Reprompt();
         reprompt.setOutputSpeech(repromptOutputSpeech);
         return SpeechletResponse.newAskResponse(outputSpeech, reprompt);
-    }
+}
 	
     /**
      * creates a site in SteelConnnect
@@ -367,6 +385,7 @@ public class SconASKSpeechlet implements Speechlet {
 		else{
 			name = type+"_"+city;
 			longname = type+" "+city;
+			testAddress = false;
 		}
 		site = new SconSite(name, longname, address, city, country);
 		try {
@@ -460,9 +479,9 @@ public class SconASKSpeechlet implements Speechlet {
     	Slot qosSlot = intent.getSlot(SLOT_QOS);
     	
     	//there was no type indicated
-    	stringOutput = "Which priority do you want to apply?";
+    	//stringOutput = "Which priority do you want to apply?";
     
-    	repromptText = "QOS can be auto, urgent, high, normal or low";
+    	//repromptText = "QOS can be auto, urgent, high, normal or low";
     	return newAskResponse(stringOutput, repromptText);
 	}
     /**
@@ -586,5 +605,6 @@ public class SconASKSpeechlet implements Speechlet {
     	
     	return newAskResponse(stringOutput, repromptText);
     }
-    	
+
+	
 }
